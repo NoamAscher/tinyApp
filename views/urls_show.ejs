@@ -8,11 +8,14 @@
     <p><a href="<%= shortURL %>"> <%= shortURL.toString() %></a></p>
 
     <form action="/urls" method="POST" style="margin:150px;">
-      <label for="longURL">Enter a URL:</label>
-      <input id="longURL" type="text" name="longURL" placeholder="http://" style="width: 300px">
-      <input type="submit" value="Submit_input">
-      <button type="submit" value="Submit_button">submit button</button>
+      <label for="longURL">ShortURL: <%= shortURL.toString() %></label>
+      <input id="longURL" type="text" name="longURL"
+        placeholder="<%= longURL %>" action="/urls/<%= shortURL %>/update" style="width: 300px">
+      <button type="submit" value="Submit_button" submit button>Update URL</button>
     </form>
 
 </body>
 </html>
+
+
+<!-- action="/urls/<%//= i %>/update"> -->

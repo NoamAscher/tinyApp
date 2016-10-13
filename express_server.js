@@ -3,6 +3,18 @@ var app = express();
 app.set("view engine", "ejs");
 var PORT = process.env.PORT || 8080; // default port 8080
 
+
+function generateRandomString() {
+    checkString = "0123456789abcdefghijklmnopqrstuvwxyz";
+    returnString = [];
+    for (let i = 0; i < 6; i++) {
+      let index = Math.floor(Math.random() * 36);
+      returnString = `${returnString}${checkString[index]}`;
+    }
+    return returnString;
+}
+
+
 var urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
@@ -31,14 +43,12 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-
-
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
 app.get("/urls/:id", (req, res) => {
-  let templateVars = { shortURL: req.params.id };
+  let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render("urls_show", templateVars);
 });
 
@@ -46,11 +56,30 @@ app.get("/urls/:id", (req, res) => {
 // -------- Part 1 functions --------
 
 const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded());
+app.use(bodyParser.urlencoded({
+  extended: false
+}));
 
+/*
+app.put('/wizards/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const wizard = wizDb.find((wiz) => {
+    return wiz.id === id;
+  });
+  // This is where we update the wizard (update the database)
+  wizard.real_name = req.body.real_name;
+  // Because we're handling a post request, we need to redirect
+  res.redirect(`/wizards/${wizard.id}`);
+});
+*/
 
 app.post("/urls", (req, res) => {
-  urlDatabase["xsrif8"] = "https://nodejs.org/en/";
+  //urlDatabase["xsrif8"] = "https://nodejs.org/en/";
+  let theUrl = req.body.longURL;
+  if (!(theUrl.slice(0,6) == "http://" || theUrl.slice(0,7) == "https://")) {
+    theUrl = `http://${theUrl}`;
+  }
+  urlDatabase[generateRandomString()] = theUrl;
   res.redirect("/urls");
 });
 
@@ -81,6 +110,16 @@ app.post("/urls/:id/delete", (req, res) => {
   // use redirect to reload the /urls page
   res.redirect("/urls");
 })
+
+
+// -------- Part 4 functions --------
+
+app.post("urls/:id/update", (req, res) => {
+  console.log("made it to the endpoint.");
+  let shortURL = req.params.shortURL;
+ // urlDatabase[shortURL] =
+})
+
 
 
 
