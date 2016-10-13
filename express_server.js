@@ -118,7 +118,8 @@ app.post("/urls/:id/update", (req, res) => {
   console.log("made it to the endpoint.");
   console.log(req.body);
   let updatedUrl = req.body.longURL;
-  if (!(updatedUrl.slice(0,6) == "http://" || updatedUrl.slice(0,7) == "https://")) {
+  console.log(updatedUrl.slice(0,6));
+  if (!(updatedUrl.slice(0,7) == "http://" || updatedUrl.slice(0,8) == "https://")) {
     updatedUrl = `http://${updatedUrl}`;
   }
   urlDatabase[req.params.id] = updatedUrl;

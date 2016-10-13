@@ -5,7 +5,9 @@
     <% include ../views/partials/_header %>
   </header>
 
-    <p><a href="<%= shortURL %>"> <%= shortURL.toString() %></a></p>
+    <p>Current pairing:</p>
+    <p><%= shortURL.toString() %> -> <%= longURL %></p>
+
 
     <form id="shortURL" action="/urls/<%= shortURL %>/update" method="POST" style="margin:150px;">
       <label for="shortURL">ShortURL: <%= shortURL.toString() %></label>
