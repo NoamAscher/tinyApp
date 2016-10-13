@@ -25,13 +25,4 @@ server.listen(PORT, () => {
 });
 
 
-function generateRandomString() {
-    checkString = "0123456789abcdefghijklmnopqrstuvwxyz";
-    returnString = [];
-    for (let i = 0; i < 6; i++) {
-      let index = Math.floor(Math.random() * 36);
-      returnString = `${returnString}${checkString[index]}`;
-    }
-    return returnString;
-}
 

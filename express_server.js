@@ -73,7 +73,7 @@ app.put('/wizards/:id', (req, res) => {
 });
 */
 
-app.post("/urls", (req, res) => {
+app.post("/urls/create", (req, res) => {
   //urlDatabase["xsrif8"] = "https://nodejs.org/en/";
   let theUrl = req.body.longURL;
   if (!(theUrl.slice(0,6) == "http://" || theUrl.slice(0,7) == "https://")) {
@@ -114,10 +114,15 @@ app.post("/urls/:id/delete", (req, res) => {
 
 // -------- Part 4 functions --------
 
-app.post("urls/:id/update", (req, res) => {
+app.post("/urls/:id/update", (req, res) => {
   console.log("made it to the endpoint.");
-  let shortURL = req.params.shortURL;
- // urlDatabase[shortURL] =
+  console.log(req.body);
+  let updatedUrl = req.body.longURL;
+  if (!(updatedUrl.slice(0,6) == "http://" || updatedUrl.slice(0,7) == "https://")) {
+    updatedUrl = `http://${updatedUrl}`;
+  }
+  urlDatabase[req.params.id] = updatedUrl;
+  res.redirect("/urls");
 })
 
 
