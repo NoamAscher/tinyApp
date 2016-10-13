@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<body>
+    <header>
+      <% include ../views/partials/_header %>
+    </header>
+    <p>Here are the shortened URLS:</p>
+    <ol>
+      <% for (var i in urls) {%>
+        <li>
+          <a href="<%= urls[i] %>"> <%= i %></a>
+          <form method="POST" action="/urls/<%= i %>/delete">
+      <!--    <%// if (i = "xsrif8") { %>
+            <% // delete urls[i] %>
+          <% // } %>   -->
+            <button type="submit">Delete<% delete i %></button>
+
+      </form>
+        </li>
+      <% } %>
+    </ol>
+</body>
+</html>
+
+
+<!--
+
+-->

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<body>
+    <header>
+      <% include ../views/partials/_header %>
+    </header>
+    <p>Here are the shortened URLS:</p>
+    <ol>
+      <% for (var i in urls) {%>
+        <li><a href="<%= urls[i] %>"> <%= i %></a></li>
+      <% } %>
+    </ol>
+</body>
+</html>
