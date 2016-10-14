@@ -4,14 +4,12 @@ app.set("view engine", "ejs");
 var PORT = process.env.PORT || 8080; // default port 8080
 var cookieParser = require('cookie-parser');
 
+
 // Express middleware that parses cookies
-
-// app.use((req, res, next) => {
-//    req.cookies = new cookieParser( req, res, {"username": username} );
-//    next();
-//  })
-
 app.use(cookieParser());
+
+
+// function to be used by endpoints:
 
 function generateRandomString() {
     checkString = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -27,7 +25,15 @@ function generateRandomString() {
 var urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
-  //"xsrif8": "https://nodejs.org/en/"
+};
+
+// added during User Registration portion of project:
+var users = {
+  /** format:
+  "userRandomID": {id: "userRandomID", email: "user@example.com", password: "purple-monkey-dinosaur"},
+  "user2RandomID": {id: "user2RandomID", email: "user2@example.com", password: "dishwasher-funk"}
+  **/
+ // plchld: { id: 'plchld', email: 'placehold@place.hold', password: 'hold' }
 };
 
 app.get("/", (req, res) => {
@@ -143,21 +149,52 @@ app.post("/urls/:id/update", (req, res) => {
 })
 
 
-// -------- Login functions --------
-
-
+// -------- Login (cookie) functions --------
 
 app.post("/login", (req, res) => {
-  console.log("username", req.body.username);
-
-    res.cookie("username", req.body.username);
-
+  res.cookie("username", req.body.username);
   res.redirect('/urls');
 })
 
 app.post("/logout", (req, res) => {
-  //console.log("username", req.body.username);
   res.clearCookie("username");
   res.redirect('/');
 })
 
+// -------- User Reg functions --------
+
+app.get("/register", (req, res) => {
+  // let templateVars = {
+  //   email: req.cookies.email,
+  //   password: req.cookies.password
+  res.render("registration"); //, templateVars);
+})
+
+app.post("/register", (req, res) => {
+  let newUserID = generateRandomString();
+  var entryIssue = false;
+  if (!req.body.email || !req.body.password) {
+    res.status(400).send('400! Fill in all the blanks please :)');
+    entryIssue = true;
+    console.log("entryIssue = true");
+  } else {
+    for (entry in users) {
+      console.log("for loop commencing");
+      if (req.body.email === users[entry].email) {
+        res.status(400).send('400! This email address is already registered.');
+        entryIssue = true;
+        console.log("entryIssue = true");
+        break;
+      }
+    }
+  }
+  if (!entryIssue) {
+    users[newUserID] = {
+      id: newUserID,
+      email: req.body.email,
+      password: req.body.password
+    };
+    console.log(users);
+    res.redirect('/');
+  }
+})
