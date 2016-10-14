@@ -2,7 +2,16 @@ var express = require("express");
 var app = express();
 app.set("view engine", "ejs");
 var PORT = process.env.PORT || 8080; // default port 8080
+var cookieParser = require('cookie-parser');
 
+// Express middleware that parses cookies
+
+// app.use((req, res, next) => {
+//    req.cookies = new cookieParser( req, res, {"username": username} );
+//    next();
+//  })
+
+app.use(cookieParser());
 
 function generateRandomString() {
     checkString = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -39,16 +48,26 @@ app.get("/hello", (req, res) => {
 
 
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase };
+  let templateVars = {
+    username: req.cookies.username,
+    urls: urlDatabase
+  };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  let templateVars = {
+    username: req.cookies.username
+  };
+  res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:id", (req, res) => {
-  let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id] };
+  let templateVars = {
+    username: req.cookies.username,
+    shortURL: req.params.id,
+    longURL: urlDatabase[req.params.id]
+  };
   res.render("urls_show", templateVars);
 });
 
@@ -115,10 +134,7 @@ app.post("/urls/:id/delete", (req, res) => {
 // -------- Part 4 functions --------
 
 app.post("/urls/:id/update", (req, res) => {
-  console.log("made it to the endpoint.");
-  console.log(req.body);
   let updatedUrl = req.body.longURL;
-  console.log(updatedUrl.slice(0,6));
   if (!(updatedUrl.slice(0,7) == "http://" || updatedUrl.slice(0,8) == "https://")) {
     updatedUrl = `http://${updatedUrl}`;
   }
@@ -127,6 +143,21 @@ app.post("/urls/:id/update", (req, res) => {
 })
 
 
+// -------- Login functions --------
 
 
+
+app.post("/login", (req, res) => {
+  console.log("username", req.body.username);
+
+    res.cookie("username", req.body.username);
+
+  res.redirect('/urls');
+})
+
+app.post("/logout", (req, res) => {
+  //console.log("username", req.body.username);
+  res.clearCookie("username");
+  res.redirect('/');
+})
 
