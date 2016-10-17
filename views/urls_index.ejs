@@ -10,12 +10,11 @@
       <% for (var i in urls) {%>
         <li>
           <a href="<%= urls[i] %>"> <%= i %></a>
-          <a href="/urls/<%= i %>"> Edit </a>
-          <form method="POST" action="/urls/<%= i %>/delete">
-      <!--    <%// if (i = "xsrif8") { %>
-            <% // delete urls[i] %>
-          <% // } %>   -->
-            <button type="submit">Delete<% delete i %></button>
+          <% if (userId) { %>
+            <a href="/urls/<%= i %>"> Edit </a>
+            <form method="POST" action="/urls/<%= i %>/delete">
+              <button type="submit">Delete<% delete i %></button>
+          <% } %>
 
       </form>
         </li>
