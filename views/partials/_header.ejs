@@ -1,15 +1,21 @@
 <h3> TinyApp </h3>
 
-  <% if (!username) {%>
+  <% if (!userId || userId === "guest") {%>
 <form action="/login" method="POST">
-    <input id="username" type="" name="username"
+    <input id="email" type="" name="email"
+          placeholder="" action="" style="width: 300px">
+    <input id="password" type="" name="password"
           placeholder="" action="" style="width: 300px">
     <input type="submit" value="Sign In" />
 </form>
   <% } else { %>
+
+
 <form action="/logout" method="POST">
-    <span> <%= username %> </span>
-    <input id="username" type="submit" value="Sign Out" />
+  <span>user email: <%= email %> </span>
+  <input id="email" type="submit" value="Sign Out" />
 </form>
 
   <% } %>
+
+

@@ -29,12 +29,19 @@ var urlDatabase = {
 
 // added during User Registration portion of project:
 var users = {
-  /** format:
-  "userRandomID": {id: "userRandomID", email: "user@example.com", password: "purple-monkey-dinosaur"},
-  "user2RandomID": {id: "user2RandomID", email: "user2@example.com", password: "dishwasher-funk"}
-  **/
- // plchld: { id: 'plchld', email: 'placehold@place.hold', password: 'hold' }
+  "guest": {id: "guest", email: "", password: ""}
 };
+
+
+var templateVars = {
+      urls: urlDatabase,
+      userId: "",
+      email: "",
+      password: "",
+      shortURL: "",
+      longURL: ""
+    };
+
 
 app.get("/", (req, res) => {
   res.end("Hello!");
@@ -49,31 +56,37 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/hello", (req, res) => {
-  res.end("<html><body>Hello <b>World</b></body></html>\n");
+  res.end("<html><body>Hello <em>World</em></body></html>\n");
 });
 
 
 app.get("/urls", (req, res) => {
-  let templateVars = {
-    username: req.cookies.username,
-    urls: urlDatabase
-  };
+  if (req.cookies.userId){
+    templateVars.userId = req.cookies.userId;
+    templateVars.email = users[req.cookies.userId].email;
+    res.render("urls_index", templateVars);
+  }
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  let templateVars = {
-    username: req.cookies.username
-  };
+  //   templateVars.email = users.userId.email;
+  //   userId: req.cookies.userId,
+  //   email: users.userId.email
+  // };
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:id", (req, res) => {
-  let templateVars = {
-    username: req.cookies.username,
-    shortURL: req.params.id,
-    longURL: urlDatabase[req.params.id]
-  };
+  //templateVars.email = users.userId.email;
+  templateVars.shortURL = req.params.id;
+  templateVars.longURL = urlDatabase[req.params.id]
+  // let templateVars = {
+  //   userId: req.cookies.userId,
+  //   email: users.userId.email,
+  //   shortURL: req.params.id,
+  //   longURL: urlDatabase[req.params.id]
+  // };
   res.render("urls_show", templateVars);
 });
 
@@ -85,18 +98,6 @@ app.use(bodyParser.urlencoded({
   extended: false
 }));
 
-/*
-app.put('/wizards/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const wizard = wizDb.find((wiz) => {
-    return wiz.id === id;
-  });
-  // This is where we update the wizard (update the database)
-  wizard.real_name = req.body.real_name;
-  // Because we're handling a post request, we need to redirect
-  res.redirect(`/wizards/${wizard.id}`);
-});
-*/
 
 app.post("/urls/create", (req, res) => {
   //urlDatabase["xsrif8"] = "https://nodejs.org/en/";
@@ -151,14 +152,15 @@ app.post("/urls/:id/update", (req, res) => {
 
 // -------- Login (cookie) functions --------
 
-app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
-  res.redirect('/urls');
-})
+// app.post("/login", (req, res) => {
+//   res.cookie("userId", req.body.userId);
+//   res.redirect('/urls');
+// })
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
-  res.redirect('/');
+  res.clearCookie("userId");
+  userId = "guest";
+  res.redirect('/login');
 })
 
 // -------- User Reg functions --------
@@ -179,7 +181,6 @@ app.post("/register", (req, res) => {
     console.log("entryIssue = true");
   } else {
     for (entry in users) {
-      console.log("for loop commencing");
       if (req.body.email === users[entry].email) {
         res.status(400).send('400! This email address is already registered.');
         entryIssue = true;
@@ -190,11 +191,55 @@ app.post("/register", (req, res) => {
   }
   if (!entryIssue) {
     users[newUserID] = {
-      id: newUserID,
+      userId: newUserID,
       email: req.body.email,
       password: req.body.password
     };
+    res.cookie("userId", newUserID);
     console.log(users);
-    res.redirect('/');
+    // res.redirect('/');   <----- why? coded next line instead.
+    res.redirect('/urls');
   }
 })
+
+app.get("/login", (req, res) =>{
+  res.render("login");
+})
+
+app.post("/login", (req, res) => {
+  if (req.body.register) {
+    console.log('*** register ***');
+    res.redirect('/register');
+  } else {
+    if (!req.body.email || !req.body.password) {
+      res.status(400).send('400! Fill in all the blanks please :)');
+      entryIssue = true;
+      console.log("entryIssue = true");
+    } else {
+      var allOk = false;
+      for (entry in users) {
+        if (req.body.email === users[entry].email) {
+          if (req.body.password !== users[entry].password) {
+            res.status(400).send('Incorrect password, please try again.');
+            // some sorta reload operation.
+          } else {
+            allOk = true;
+            res.cookie("userId", users[entry].userId);
+            res.redirect('/urls');  // or break and redirect('/urls') at end?
+          }
+        }
+      }
+      if (!allOk) {
+        res.status(400).send('Email not found.');
+      }
+    }
+  }
+})
+
+
+
+
+
+
+
+
