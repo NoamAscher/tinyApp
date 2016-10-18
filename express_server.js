@@ -2,13 +2,17 @@ var express = require("express");
 var app = express();
 app.set("view engine", "ejs");
 var PORT = process.env.PORT || 8080; // default port 8080
-var cookieParser = require('cookie-parser');
+//var cookieParser = require('cookie-parser');
+var cookieSession = require('cookie-session');
 
 const bcrypt = require('bcrypt');
 
 // Express middleware that parses cookies
-app.use(cookieParser());
-
+//app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2']
+}));
 
 // function to be used by endpoints:
 
@@ -62,9 +66,13 @@ app.get("/hello", (req, res) => {
 
 
 app.get("/urls", (req, res) => {
-  if (req.cookies.userId){
-    templateVars.userId = req.cookies.userId;
-    templateVars.email = users[req.cookies.userId].email;
+  //if (req.cookies.userId){
+  if (req.session.userId){
+    //templateVars.userId = req.cookies.userId;
+    templateVars.userId = req.session.userId;
+    //templateVars.email = users[req.cookies.userId].email;
+    templateVars.email = users[req.session.userId].email;
+
   } else {
     // *** ... is this a good idea? ***
     templateVars.userId = "";
@@ -78,8 +86,10 @@ app.get("/urls", (req, res) => {
 // -------- Logged-in user functions --------
 
 app.get("/urls/user", (req, res) => {
-  templateVars.userId = req.cookies.userId;
-  templateVars.email = users[req.cookies.userId].email;
+  //templateVars.userId = req.cookies.userId;
+  templateVars.userId = req.session.userId;
+  //templateVars.email = users[req.cookies.userId].email;
+  templateVars.email = users[req.session.userId].email;
   console.log(users);
   res.render("urls_user", templateVars);
 });
@@ -124,7 +134,8 @@ app.post("/urls/create", (req, res) => {
   if (!(theUrl.slice(0,6) == "http://" || theUrl.slice(0,7) == "https://")) {
     theUrl = `http://${theUrl}`;
   }
-  urlDatabase[generateRandomString()] = {link: theUrl, id: req.cookies.userId};
+  //urlDatabase[generateRandomString()] = {link: theUrl, id: req.cookies.userId};
+  urlDatabase[generateRandomString()] = {link: theUrl, id: req.session.userId};
   console.log(urlDatabase);
   res.redirect("/urls");
 });
@@ -178,7 +189,8 @@ app.post("/urls/:id/update", (req, res) => {
 // })
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("userId");
+  //res.clearCookie("userId");
+  req.session = null;
   userId = "guest";
   res.redirect('/urls');
 })
@@ -226,7 +238,8 @@ app.post("/register", (req, res) => {
       password: hashed_password
       //password: req.body.password;
     };
-    res.cookie("userId", newUserID);
+    //res.cookie("userId", newUserID);
+    req.session.userId = newUserID;
     console.log('** registration success **')
     //console.log(users); <- works, ie users successfully loaded
     // res.redirect('/');   Coded next line instead, '/' used for a (lo-fi) splash page.
@@ -259,11 +272,14 @@ app.post("/login", (req, res) => {
         if (req.body.email === users[entry].email) {
          if (!bcrypt.compareSync(req.body.password, users[entry].password)) {
          //if (req.body.password !== users[entry].password) {
-            res.status(400).send('Incorrect password, please try again.');
-            // some sorta reload operation.
+            let line1 = "<p>Incorrect password, please try again.</p>";
+            let line2 = "<div><a href=\"/login\">Retry</a></div></body></html>";
+            let line3 = "<div><a href=\"/register\">Register</a></div>";
+            res.status(400).send(`<html><body>${line1}${line2}${line3}</body></html>`);
           } else {
             allOk = true;
-            res.cookie("userId", users[entry].userId);
+            //res.cookie("userId", users[entry].userId);
+            req.session.userId = users[entry].userId;
             res.redirect('/urls');  // or break and redirect('/urls') at end?
           }
         }
