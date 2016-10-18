@@ -4,6 +4,7 @@ app.set("view engine", "ejs");
 var PORT = process.env.PORT || 8080; // default port 8080
 var cookieParser = require('cookie-parser');
 
+const bcrypt = require('bcrypt');
 
 // Express middleware that parses cookies
 app.use(cookieParser());
@@ -217,10 +218,13 @@ app.post("/register", (req, res) => {
     }
   }
   if (!entryIssue) {
+    const password = req.body.password;
+    const hashed_password = bcrypt.hashSync(password, 10);
     users[newUserID] = {
       userId: newUserID,
       email: req.body.email,
-      password: req.body.password
+      password: hashed_password
+      //password: req.body.password;
     };
     res.cookie("userId", newUserID);
     console.log('** registration success **')
@@ -253,7 +257,8 @@ app.post("/login", (req, res) => {
       var allOk = false;
       for (entry in users) {
         if (req.body.email === users[entry].email) {
-          if (req.body.password !== users[entry].password) {
+         if (!bcrypt.compareSync(req.body.password, users[entry].password)) {
+         //if (req.body.password !== users[entry].password) {
             res.status(400).send('Incorrect password, please try again.');
             // some sorta reload operation.
           } else {
