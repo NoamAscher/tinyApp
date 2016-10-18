@@ -5,25 +5,19 @@
     <header>
       <% include ../views/partials/_header %>
     </header>
-    <p>Here are all shortened URLS:</p>
+    <p>Here are all shortened URLS</p>
     <ol>
-      <% for (var i in urls) {%>
+      <% for (var i in urls) { %>
         <li>
-          <a href="<%= urls[i] %>"> <%= i %></a>
-          <% if (userId) { %>
-            <a href="/urls/<%= i %>"> Edit </a>
-            <form method="POST" action="/urls/<%= i %>/delete">
-              <button type="submit">Delete<% delete i %></button>
-          <% } %>
-
-      </form>
+          <a href="<%= urls[i].link %>"> <%= i %></a>
         </li>
       <% } %>
     </ol>
-
-    <form action="urls/new">
-      <input type="submit" value="Click to enter a new one" />
-    </form>
+    <% if (userId) { %>
+      <form action="urls/user">
+        <input type="submit" value="Click to manage your links" />
+      </form>
+    <% } %>
 
 </body>
 </html>

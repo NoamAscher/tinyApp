@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<body>
+    <header>
+      <% include ../views/partials/_header %>
+    </header>
+    <p>Here are your shortened URLS: </p>
+    <ol>
+      <% for (var i in urls) {%>
+        <% if (urls[i].id === userId) {%>
+          <li>
+            <a href="<%= urls[i].link %>"> <%= i %></a>
+              <a href="/urls/<%= i %>"> Edit </a>
+              <form method="POST" action="/urls/<%= i %>/delete">
+                <button type="submit">Delete<% delete i %></button>
+              </form>
+          </li>
+        <% } %>
+      <% } %>
+    </ol>
+
+
+    <form action="/urls/new">
+      <input type="submit" value="Click to enter a new one" />
+    </form>
+
+    <form action="/urls">
+      <input type="submit" value="Click to view the full list" />
+    </form>
+
+</body>
+</html>
+
+
+<!--
+
+-->

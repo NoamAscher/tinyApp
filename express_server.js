@@ -73,6 +73,16 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+
+// -------- Logged-in user functions --------
+
+app.get("/urls/user", (req, res) => {
+  templateVars.userId = req.cookies.userId;
+  templateVars.email = users[req.cookies.userId].email;
+  console.log(users);
+  res.render("urls_user", templateVars);
+});
+
 app.get("/urls/new", (req, res) => {
   //   templateVars.email = users.userId.email;
   //   userId: req.cookies.userId,
@@ -82,10 +92,12 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
+
+
 app.get("/urls/:id", (req, res) => {
   //templateVars.email = users.userId.email;
   templateVars.shortURL = req.params.id;
-  templateVars.longURL = urlDatabase[req.params.id]
+  templateVars.longURL = urlDatabase[req.params.id].link;
   // let templateVars = {
   //   userId: req.cookies.userId,
   //   email: users.userId.email,
@@ -112,6 +124,7 @@ app.post("/urls/create", (req, res) => {
     theUrl = `http://${theUrl}`;
   }
   urlDatabase[generateRandomString()] = {link: theUrl, id: req.cookies.userId};
+  console.log(urlDatabase);
   res.redirect("/urls");
 });
 
@@ -151,7 +164,7 @@ app.post("/urls/:id/update", (req, res) => {
   if (!(updatedUrl.slice(0,7) == "http://" || updatedUrl.slice(0,8) == "https://")) {
     updatedUrl = `http://${updatedUrl}`;
   }
-  urlDatabase[req.params.id] = updatedUrl;
+  urlDatabase[req.params.id].link = updatedUrl;
   res.redirect("/urls");
 })
 
@@ -217,6 +230,8 @@ app.post("/register", (req, res) => {
   }
 })
 
+// -------- New login functions --------
+
 app.get("/login", (req, res) =>{
   res.render("login");
 })
@@ -258,10 +273,6 @@ app.post("/login", (req, res) => {
     }
   }
 })
-
-
-
-
 
 
 
