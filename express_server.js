@@ -1,24 +1,31 @@
+// Essential requirements
 var express = require("express");
 var app = express();
 app.set("view engine", "ejs");
-var PORT = process.env.PORT || 8080; // default port 8080
-//var cookieParser = require('cookie-parser');
+var PORT = process.env.PORT || 8080;
 var cookieSession = require('cookie-session');
 
+// For encrypting passwords:
 const bcrypt = require('bcrypt');
 
+
+// Bodyparser
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({
+  extended: false
+}));
+
 // Express middleware that parses cookies
-//app.use(cookieParser());
 app.use(cookieSession({
   name: 'session',
   keys: ['key1', 'key2']
 }));
 
-// function to be used by endpoints:
 
+// Function to be used by endpoints to generate user Ids
 function generateRandomString() {
-    checkString = "0123456789abcdefghijklmnopqrstuvwxyz";
-    returnString = [];
+    let checkString = "0123456789abcdefghijklmnopqrstuvwxyz";
+    let returnString = [];
     for (let i = 0; i < 6; i++) {
       let index = Math.floor(Math.random() * 36);
       returnString = `${returnString}${checkString[index]}`;
@@ -26,18 +33,18 @@ function generateRandomString() {
     return returnString;
 }
 
-
+// Database of URLs, initialized with two defaults
 var urlDatabase = {
   "b2xVn2": {link: "http://www.lighthouselabs.ca", id: ""},
   "9sm5xK": {link: "http://www.google.com", id: ""}
 };
 
-// added during User Registration portion of project:
-var users = {
+// Database of users:
+var users = { // object format below:
  // "guest": {id: "guest", email: "", password: ""}
 };
 
-
+// The object usually used to deliver info to the front end:
 var templateVars = {
       urls: urlDatabase,
       userId: "",
@@ -48,104 +55,67 @@ var templateVars = {
     };
 
 
-app.get("/", (req, res) => {
-  res.end("<html><body><h4>Hello!</h4><a href=\"/urls\">Go to list of URLs</a><body><html>");
-});
-
+// listening function, pings the port number.
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
+
+// ----- //
+
+
+/* GET functions */
+
+// Splash page
+app.get("/", (req, res) => {
+  res.end("<html><body><h4>Hello!</h4><a href=\"/urls\">Go to list of URLs</a><body><html>");
+});
+
+// To view a JSON formatted list:
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+// Hello page (sample, not part of user flow)
 app.get("/hello", (req, res) => {
   res.end("<html><body>Hello <em>World</em></body></html>\n");
 });
 
-
+// Page that displays all shortened URLs currently on the server:
 app.get("/urls", (req, res) => {
-  //if (req.cookies.userId){
   if (req.session.userId){
-    //templateVars.userId = req.cookies.userId;
     templateVars.userId = req.session.userId;
-    //templateVars.email = users[req.cookies.userId].email;
     templateVars.email = users[req.session.userId].email;
-
   } else {
-    // *** ... is this a good idea? ***
     templateVars.userId = "";
     templateVars.email = "";
   }
-  console.log(users);
   res.render("urls_index", templateVars);
 });
 
-
-// -------- Logged-in user functions --------
-
+// Page that displays all shortened URLs added / edited by the currently logged in user:
 app.get("/urls/user", (req, res) => {
-  //templateVars.userId = req.cookies.userId;
   templateVars.userId = req.session.userId;
-  //templateVars.email = users[req.cookies.userId].email;
   templateVars.email = users[req.session.userId].email;
-  console.log(users);
   res.render("urls_user", templateVars);
 });
 
+// Page for a user to create a new URL:
 app.get("/urls/new", (req, res) => {
-  //   templateVars.email = users.userId.email;
-  //   userId: req.cookies.userId,
-  //   email: users.userId.email
-  // };
-  console.log(users);
   res.render("urls_new", templateVars);
 });
 
-
-
+// Page for a user edit a specific URL they have added:
 app.get("/urls/:id", (req, res) => {
-  //templateVars.email = users.userId.email;
   templateVars.shortURL = req.params.id;
   templateVars.longURL = urlDatabase[req.params.id].link;
-  // let templateVars = {
-  //   userId: req.cookies.userId,
-  //   email: users.userId.email,
-  //   shortURL: req.params.id,
-  //   longURL: urlDatabase[req.params.id]
-  // };
-  console.log(users);
   res.render("urls_show", templateVars);
 });
 
-
-// -------- Part 1 functions --------
-
-const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({
-  extended: false
-}));
-
-
-app.post("/urls/create", (req, res) => {
-  //urlDatabase["xsrif8"] = "https://nodejs.org/en/";
-  let theUrl = req.body.longURL;
-  if (!(theUrl.slice(0,6) == "http://" || theUrl.slice(0,7) == "https://")) {
-    theUrl = `http://${theUrl}`;
-  }
-  //urlDatabase[generateRandomString()] = {link: theUrl, id: req.cookies.userId};
-  urlDatabase[generateRandomString()] = {link: theUrl, id: req.session.userId};
-  console.log(urlDatabase);
-  res.redirect("/urls");
-});
-
-
-
-// -------- Part 2 functions --------
-
+// ** Potentially to be removed as not currently part of user flow: **
+// URL to type in to load the longURL
 app.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL];
+  let longURL = urlDatabase[req.params.shortURL].link;
   if(longURL)
   {
     res.redirect(longURL);
@@ -156,21 +126,38 @@ app.get("/u/:shortURL", (req, res) => {
   }
 });
 
+// Loads user registration page:
+app.get("/register", (req, res) => {
+  res.render("registration");
+})
 
-// -------- Part 3 functions --------
-
-app.post("/urls/:id/delete", (req, res) => {
-  //console.log("Made it to the endpoint.");
-  // Delete the whole url with the key
-  delete urlDatabase[req.params.id];
-  //console.log(`${urlDatabase.[req.params.id]} deleted.`);
-  // use redirect to reload the /urls page
-  res.redirect("/urls");
+// Loads "pure" login page:
+app.get("/login", (req, res) =>{
+  res.render("login");
 })
 
 
-// -------- Part 4 functions --------
+// ----- //
 
+
+/* POST functions */
+
+// Creates a new shortURL
+app.post("/urls/create", (req, res) => {
+  let theUrl = req.body.longURL;
+  if (!(theUrl.slice(0,6) == "http://" || theUrl.slice(0,7) == "https://")) {
+    theUrl = `http://${theUrl}`;
+  }
+  urlDatabase[generateRandomString()] = {link: theUrl, id: req.session.userId};
+  res.redirect("/urls");
+});
+
+app.post("/urls/:id/delete", (req, res) => {
+  delete urlDatabase[req.params.id];
+  res.redirect("/urls");
+})
+
+// Updates a user's ShortURL
 app.post("/urls/:id/update", (req, res) => {
   let updatedUrl = req.body.longURL;
   if (!(updatedUrl.slice(0,7) == "http://" || updatedUrl.slice(0,8) == "https://")) {
@@ -181,50 +168,26 @@ app.post("/urls/:id/update", (req, res) => {
 })
 
 
-// -------- Login (cookie) functions --------
-
-// app.post("/login", (req, res) => {
-//   res.cookie("userId", req.body.userId);
-//   res.redirect('/urls');
-// })
-
-app.post("/logout", (req, res) => {
-  //res.clearCookie("userId");
-  req.session = null;
-  userId = "guest";
-  res.redirect('/urls');
-})
-
-// -------- User Reg functions --------
-
-app.get("/register", (req, res) => {
-  // let templateVars = {
-  //   email: req.cookies.email,
-  //   password: req.cookies.password
-  res.render("registration"); //, templateVars);
-})
-
+// Registers a new user
 app.post("/register", (req, res) => {
   let newUserID = generateRandomString();
   var entryIssue = false;
   if (!req.body.email || !req.body.password) {
-    // ugly ugly ugly I know.
+    // rather unsightly and repetitive...?
     let line1 = "<p>400! Fill in all the blanks please :)</p>";
     let line2 = "<div><a href=\"/register\">Retry</a></div></body></html>";
     let line3 = "<div><a href=\"/login\">Login</a></div>";
     res.status(400).send(`<html><body>${line1}${line2}${line3}</body></html>`);
     entryIssue = true;
-    console.log("entryIssue = true");
   } else {
     for (entry in users) {
       if (req.body.email === users[entry].email) {
-        // ugly ugly ugly I know.
+        // rather unsightly and repetitive...?
         let line1 = "<p>400! This email address is already registered.</p>";
         let line2 = "<div><a href=\"/register\">Retry</a></div></body></html>";
         let line3 = "<div><a href=\"/login\">Login</a></div>";
         res.status(400).send(`<html><body>${line1}${line2}${line3}</body></html>`);
         entryIssue = true;
-        console.log("entryIssue = true");
         break;
       }
     }
@@ -236,56 +199,43 @@ app.post("/register", (req, res) => {
       userId: newUserID,
       email: req.body.email,
       password: hashed_password
-      //password: req.body.password;
     };
-    //res.cookie("userId", newUserID);
     req.session.userId = newUserID;
-    console.log('** registration success **')
-    //console.log(users); <- works, ie users successfully loaded
-    // res.redirect('/');   Coded next line instead, '/' used for a (lo-fi) splash page.
     res.redirect('/urls');
   }
 })
 
-// -------- New login functions --------
 
-app.get("/login", (req, res) =>{
-  res.render("login");
-})
-
+// Logs a user in
 app.post("/login", (req, res) => {
   if (req.body.register) {
-    console.log('*** register ***');
     res.redirect('/register');
   } else {
     if (!req.body.email || !req.body.password) {
-      // ugly ugly ugly I know.
+      // rather unsightly and repetitive...?
       let line1 = "<p>400! Fill in all the blanks please :)</p>";
       let line2 = "<div><a href=\"/login\">Retry</a></div></body></html>";
       let line3 = "<div><a href=\"/register\">Register</a></div>";
       res.status(400).send(`<html><body>${line1}${line2}${line3}</body></html>`);
-      entryIssue = true;
-      console.log("entryIssue = true");
     } else {
       var allOk = false;
       for (entry in users) {
         if (req.body.email === users[entry].email) {
          if (!bcrypt.compareSync(req.body.password, users[entry].password)) {
-         //if (req.body.password !== users[entry].password) {
+            // rather unsightly and repetitive...?
             let line1 = "<p>Incorrect password, please try again.</p>";
             let line2 = "<div><a href=\"/login\">Retry</a></div></body></html>";
             let line3 = "<div><a href=\"/register\">Register</a></div>";
             res.status(400).send(`<html><body>${line1}${line2}${line3}</body></html>`);
           } else {
             allOk = true;
-            //res.cookie("userId", users[entry].userId);
             req.session.userId = users[entry].userId;
-            res.redirect('/urls');  // or break and redirect('/urls') at end?
+            res.redirect('/urls');
           }
         }
       }
       if (!allOk) {
-        // ugly ugly ugly I know.
+        // rather unsightly and repetitive...?
         let line1 = "<p>400! Email not found.</p>";
         let line2 = "<div><a href=\"/login\">Retry</a></div></body></html>";
         let line3 = "<div><a href=\"/register\">Register</a></div>";
@@ -295,6 +245,12 @@ app.post("/login", (req, res) => {
   }
 })
 
+
+// Logs a user out
+app.post("/logout", (req, res) => {
+  req.session = null;
+  res.redirect('/urls');
+})
 
 
 

@@ -2,10 +2,12 @@ const http = require("http");
 const PORT = 8080;
 
 // a function which handles requests and sends response
+
 // **INITIAL VERSION**
 // function requestHandler(request, response) {
 //   response.end(`Requested Path: ${request.url}\nRequest Method: ${request.method}`);
 // }
+
 // **MODIFIED VERSION**
 function requestHandler(request, response) {
    if (request.url == "/") {
