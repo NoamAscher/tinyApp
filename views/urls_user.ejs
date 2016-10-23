@@ -1,28 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
-  <body>
+  <body style="font-size:20px; padding:25px 40px 40px 50px;">
     <header>
       <% include ../views/partials/_header %>
     </header>
     <p>Here are your shortened URLS: </p>
-    <ol>
+    <ol style="padding: 0 0 0 28px;">
       <% for (var i in urls) {%>
-        <% if (urls[i].id === userId) {%>
+        <% if (urls[i].userId === userId) {%>
           <li>
-            <a href="<%= urls[i].link %>"> <%= i %></a>
-              <a href="/urls/<%= i %>"> Edit </a>
-              <form method="POST" action="/urls/<%= i %>/delete">
-                <button type="submit">Delete<% delete i %></button>
+            <div style="display: block; margin: 7px 0 10px 0;">
+              <a href="<%= urls[i].link %>"> <%= i %></a>
+              <span><%= `. . . .`%></span>
+              <a href="/urls/<%= i %>"> View the url </a>
+            </div>
+            <div style="display: inline-block; padding-bottom: 17px;">
+              <form style="float: left;" method="GET" action="/urls/<%= i %>/edit">
+                <label for="edit">
+                  <button id="edit" type="submit">Edit</button>
+                </label>
               </form>
+              <form style="padding-left: 45px;" method="POST" action="/urls/<%= i %>/delete">
+                <label for="delete">
+                  <button id="delete" type="submit">Delete<% delete i %></button>
+                </label>
+              </form>
+            </div>
           </li>
         <% } %>
       <% } %>
     </ol>
-    <form action="/urls/new">
-      <input type="submit" value="Click to enter a new one" />
+    <form action="/urls/new" style="padding: 0 0 0 0">
+      <label for="addNew">
+        <input if="addNew" type="submit" value="Add a new URL to your list" />
+      </label>
     </form>
-    <form action="/urls">
-      <input type="submit" value="Click to view the full list" />
+    <form action="/" style="padding-top: 14px;">
+      <label for="backToFull">
+        <input id="backToFull" type="submit" value="Back to the full list" />
+      </label>
     </form>
   </body>
 </html>

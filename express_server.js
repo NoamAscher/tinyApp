@@ -31,12 +31,12 @@ function generateRandomString() {
       returnString = `${returnString}${checkString[index]}`;
     }
     return returnString;
-}
+};
 
 // Database of URLs, initialized with two defaults
 var urlDatabase = {
-  "b2xVn2": {link: "http://www.lighthouselabs.ca", id: ""},
-  "9sm5xK": {link: "http://www.google.com", id: ""}
+  "b2xVn2": {link: "http://www.lighthouselabs.ca", userId: "admin"},
+  "9sm5xK": {link: "http://www.google.com", userId: "admin"}
 };
 
 // Database of users:
@@ -55,34 +55,13 @@ var templateVars = {
     };
 
 
-// listening function, pings the port number.
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
-
-
 // ----- //
 
 
 /* GET functions */
 
-// Splash page
-app.get("/", (req, res) => {
-  res.end("<html><body><h4>Hello!</h4><a href=\"/urls\">Go to list of URLs</a><body><html>");
-});
-
-// To view a JSON formatted list:
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-// Hello page (sample, not part of user flow)
-app.get("/hello", (req, res) => {
-  res.end("<html><body>Hello <em>World</em></body></html>\n");
-});
-
 // Page that displays all shortened URLs currently on the server:
-app.get("/urls", (req, res) => {
+app.get("/", (req, res) => {
   if (req.session.userId){
     templateVars.userId = req.session.userId;
     templateVars.email = users[req.session.userId].email;
@@ -105,36 +84,32 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
-// Page for a user edit a specific URL they have added:
+// Page to view a specific URL's information:
 app.get("/urls/:id", (req, res) => {
   templateVars.shortURL = req.params.id;
   templateVars.longURL = urlDatabase[req.params.id].link;
   res.render("urls_show", templateVars);
 });
 
-// ** Potentially to be removed as not currently part of user flow: **
-// URL to type in to load the longURL
-app.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL].link;
-  if(longURL)
-  {
-    res.redirect(longURL);
-  }
-  else
-  {
-    res.status(404).send('Not found');
+
+// Page for a logged in user to update a specific URL they own:
+app.get("/urls/:id/edit", (req, res) => {
+  if (urlDatabase[req.params.id].userId === req.session.userId) {
+    templateVars.shortURL = req.params.id;
+    templateVars.longURL = urlDatabase[req.params.id].link;
+    res.render("urls_update", templateVars);
   }
 });
 
 // Loads user registration page:
 app.get("/register", (req, res) => {
   res.render("registration");
-})
+});
 
 // Loads "pure" login page:
-app.get("/login", (req, res) =>{
+app.get("/login", (req, res) => {
   res.render("login");
-})
+});
 
 
 // ----- //
@@ -148,14 +123,17 @@ app.post("/urls/create", (req, res) => {
   if (!(theUrl.slice(0,6) == "http://" || theUrl.slice(0,7) == "https://")) {
     theUrl = `http://${theUrl}`;
   }
-  urlDatabase[generateRandomString()] = {link: theUrl, id: req.session.userId};
-  res.redirect("/urls");
+  urlDatabase[generateRandomString()] = {link: theUrl, userId: req.session.userId};
+  res.redirect("/");
 });
 
+// Deletes a URL and refreshes the user's links page
 app.post("/urls/:id/delete", (req, res) => {
-  delete urlDatabase[req.params.id];
-  res.redirect("/urls");
-})
+  if (urlDatabase[req.params.id].userId === req.session.userId) {
+    delete urlDatabase[req.params.id];
+    res.redirect("/urls/user");
+  }
+});
 
 // Updates a user's ShortURL
 app.post("/urls/:id/update", (req, res) => {
@@ -163,52 +141,59 @@ app.post("/urls/:id/update", (req, res) => {
   if (!(updatedUrl.slice(0,7) == "http://" || updatedUrl.slice(0,8) == "https://")) {
     updatedUrl = `http://${updatedUrl}`;
   }
-  urlDatabase[req.params.id].link = updatedUrl;
-  res.redirect("/urls");
-})
-
-
-// 400 error formatting helper function
-const errorFormat = function(message, logOrReg, res){
-  if (logOrReg === "reg") {
-    let line1 = "<div><a href=\"/register\">Retry</a></div></body></html>";
-    let line2 = "<div><a href=\"/login\">Login</a></div>";
-    res.status(400).send(`<html><body><p>${message}</p>${line1}${line2}</body></html>`);
-  } else {
-    let line1 = "<div><a href=\"/login\">Retry</a></div></body></html>";
-    let line2 = "<div><a href=\"/register\">Register</a></div>";
-    res.status(400).send(`<html><body><p>${message}</p>${line1}${line2}</body></html>`);
+  if (urlDatabase[req.params.id].userId === req.session.userId) {
+    urlDatabase[req.params.id].link = updatedUrl;
+    res.redirect("/");
   }
-}
+});
+
+
+// 400 error formatting helper function. Faaaairly DRY...
+const sendFormattedError = function(message, retryToRegister, res) {
+  let htmlMessageBit = `<html><body><p>${message}</p>`
+
+  let retryToRegButtons = `<div><a href=\"/register\">Retry Registration</a></div>
+                          <div><a href=\"/login\">Login</a></div></body></html>`;
+
+  let retryToLogButtons = `<div><a href=\"/login\">Retry Logging In</a></div>
+                          <div><a href=\"/register\">Register</a></div></body></html>`;
+
+  if (retryToRegister) {
+    res.status(400).send(`${htmlMessageBit} ${retryToRegButtons}`);
+  } else {
+    res.status(400).send(`${htmlMessageBit} ${retryToLogButtons}`);
+  }
+};
 
 // Registers a new user
 app.post("/register", (req, res) => {
   let newUserID = generateRandomString();
-  var entryIssue = false;
+
   if (!req.body.email || !req.body.password) {
-    errorFormat("400! Fill in all the blanks please :)", "log", res);
-    entryIssue = true;
-  } else {
+    sendFormattedError("400! Fill in all the blanks please :)", true, res);
+  }
+  else {
+    var alreadyRegistered;      // wanted to not use this but couldn't figure out how :(
     for (entry in users) {
       if (req.body.email === users[entry].email) {
-        errorFormat("400! This email address is already registered.", "log", res);
-        entryIssue = true;
-        break;
+        sendFormattedError("400! This email address is already registered.", true, res);
+        alreadyRegistered = true;
       }
     }
+    if (!alreadyRegistered) {   // wanted to not use this but couldn't figure out how :(
+      const password = req.body.password;
+      const hashed_password = bcrypt.hashSync(password, 10);
+      users[newUserID] = {
+        userId: newUserID,
+        email: req.body.email,
+        password: hashed_password
+      };
+
+      req.session.userId = newUserID;
+      res.redirect('/');
+    }
   }
-  if (!entryIssue) {
-    const password = req.body.password;
-    const hashed_password = bcrypt.hashSync(password, 10);
-    users[newUserID] = {
-      userId: newUserID,
-      email: req.body.email,
-      password: hashed_password
-    };
-    req.session.userId = newUserID;
-    res.redirect('/urls');
-  }
-})
+});
 
 
 // Logs a user in
@@ -216,34 +201,42 @@ app.post("/login", (req, res) => {
   if (req.body.register) {
     res.redirect('/register');
   } else {
+
     if (!req.body.email || !req.body.password) {
-      errorFormat("400! Fill in all the blanks please :)", "reg", res);
+      sendFormattedError("400! Fill in all the blanks please :)", false, res);
     } else {
-      var allOk = false;
+
+      var userId;
       for (entry in users) {
         if (req.body.email === users[entry].email) {
-         if (!bcrypt.compareSync(req.body.password, users[entry].password)) {
-          errorFormat("Incorrect password, please try again.", "reg", res);
-          } else {
-            allOk = true;
-            req.session.userId = users[entry].userId;
-            res.redirect('/urls');
-          }
+          userId = entry;
         }
       }
-      if (!allOk) {
-        errorFormat("400! Email not found.", "reg", res);
+      if (!userId) {
+        sendFormattedError("400! Email not found.", false, res);
+      } else {
+
+        var user = users[userId];
+        if (!bcrypt.compareSync(req.body.password, user.password)) {
+          sendFormattedError("Incorrect password, please try again.", false, res);
+        } else {
+          req.session.userId = user.userId;
+          res.redirect('/');
+        }
       }
     }
   }
-})
-
+});
 
 // Logs a user out
 app.post("/logout", (req, res) => {
   req.session = null;
-  res.redirect('/urls');
-})
+  res.redirect('/');
+});
 
 
+// listening function, pings the port number.
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
+});
 

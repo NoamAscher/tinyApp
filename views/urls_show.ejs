@@ -1,16 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
-  <body>
+  <body style="font-size:20px; padding:25px 40px 40px 50px;">
     <header>
       <% include ../views/partials/_header %>
     </header>
-    <p>Current pairing:</p>
-    <p><%= shortURL.toString() %> -> <%= longURL %></p>
-    <form id="shortURL" action="/urls/<%= shortURL %>/update" method="POST" style="margin:150px;">
-      <label for="shortURL">ShortURL: <%= shortURL.toString() %></label>
-      <input id="longURL" type="text" name="longURL"
-        placeholder="<%= longURL %>" action="/urls/<%= shortURL %>/update" style="width: 300px">
-      <button type="submit" value="Submit_button" submit button>Update URL</button>
-    </form>
+    <p>Original URL: <a href="<%= longURL %>"><%= longURL %></a></p>
+    <p>Shortened URL: <a href="<%= longURL %>">http://localhost:8080/<%= shortURL.toString() %></a></p>
+    <p></p>
+    <% if (userId) { %>
+      <form action="/urls/user" style="padding-top:25px;">
+        <label for="backToYour">
+          <input type="submit" id="backToYour" value="Back to your list" />
+        </label>
+      </form>
+    <% } %>
+      <form action="/" style="padding-top:14px;">
+        <label for="backToFull" >
+          <input type="submit" id="backToFull" value="Back to full list" />
+        </label>
+      </form>
   </body>
 </html>

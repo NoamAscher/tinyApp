@@ -1,23 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<body>
+<body style="font-size:20px; padding:25px 40px 40px 50px;">
   <form action="/login" method="POST">
     <h3>Login:</h3>
     <div>
-      <span>Email:</span>
-      <input id="email" type="email" name="email"
-        action="" style="width: 300px">
+      <label for="email" style="display: block; margin: 0 14px 10px 0;">Email:
+        <input id="email" type="email" name="email"
+        action="" style="width:200px">
+      </label>
     </div>
     <div>
-      <span>Password:</span>
-      <input id="password" type="password" name="password"
-        action="" style="width: 300px">
+      <label for="password">Password:
+        <input id="password" type="password" name="password"
+        action="" style="width: 200px">
+      </label>
     </div>
-    <input type="submit" value="Enter" />
-    <div>
-      <input id="register" name="register" type="submit"
+    <div style="margin:14px 0 20px 0;">
+      <label for="enter">
+        <input id="enter" type="submit" value="Enter" />
+      </label>
+    </div>
+    <div style="margin:28px 0 0 0;">
+      <label for="register">
+        <input id="register" name="register" type="submit"
         value="Register New Account">
+      </label>
     </div>
   </form>
 </body>

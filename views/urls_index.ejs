@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-  <body>
+  <body style="font-size:20px; padding:25px 40px 40px 50px;">
     <header>
       <% include ../views/partials/_header %>
     </header>
@@ -8,13 +8,17 @@
     <ol>
       <% for (var i in urls) { %>
         <li>
-          <a href="<%= urls[i].link %>"> <%= i %></a>
+          <a href="<%= urls[i].link %>"><%=i %></a>
+          <span><%= `. . . .`%></span>
+          <a href="urls/<%= i %>"> View the url </a>
         </li>
       <% } %>
     </ol>
     <% if (userId) { %>
-      <form action="urls/user">
-        <input type="submit" value="Click to manage your links" />
+      <form action="urls/user" style="padding-top: 14px;">
+        <label for="manage">
+          <input id="manage" type="submit" value="Click to manage your links" />
+        </label>
       </form>
     <% } %>
   </body>

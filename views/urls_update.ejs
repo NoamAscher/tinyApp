@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <body style="font-size:20px; padding:25px 40px 40px 50px;">
+    <header>
+      <% include ../views/partials/_header %>
+    </header>
+    <div style="margin: 40px 0 18px 0;"">
+      <p>Original URL: <a href="<%= longURL %>"><%= longURL %></a></p>
+      <p>Shortened URL: <a href="<%= longURL %>">http://localhost:8080/<%= shortURL.toString() %> </a></p>
+    </div>
+    <form id="shortURL" action="/urls/<%= shortURL %>/update" method="POST" style="margin: 35px 0 14px 0;">
+      <label for="longURL">Update this shortened URL with a new link:
+        <input id="longURL" type="text" name="longURL" style="width: 200px; margin: 0 11px 0 7px;"
+          placeholder="<%= longURL %>" action="/urls/<%= shortURL %>/update">
+        <button type="submit" value="Submit_button" submit button>Update URL</button>
+      </label>
+    </form>
+    <form action="/urls/user" style="padding-top:28px;">
+      <label for="backToYour">
+        <input id="backToYour" type="submit" value="Back to your list" />
+      </label>
+    </form>
+    <form action="/" style="padding-top:14px;">
+      <label for="backToFull">
+        <input type="submit" id="backToFull" value="Back to full list" />
+      </label>
+    </form>
+  </body>
+</html>

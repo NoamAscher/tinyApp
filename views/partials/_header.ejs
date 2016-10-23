@@ -1,25 +1,32 @@
 <h3> TinyApp </h3>
 
-  <% if (!userId) {%>
+<% if (!userId) {%>
 
-    <form action="/login" method="POST">
+  <form action="/register" method="GET" style="margin: 30px 0 30px 0"  >
+    <input type="submit" value="Register New Account" />
+  </form>
+
+  <form action="/login" method="POST">
+    <label for="email" style="display: block; margin: 0 14px 10px 0;">Email:
       <input id="email" type="" name="email"
-        placeholder="" action="" style="width: 300px">
+        placeholder="" action="" style="width: 200px;" />
+    </label>
+    <label for="password" style="display: block;">Password:
       <input id="password" type="password" name="password"
-        placeholder="" action="" style="width: 300px">
-      <input type="submit" value="Sign In" />
-    </form>
+        placeholder="" action="" style="width: 200px;" />
+    </label>
+    <input style="margin:14px 0 20px 0;" type="submit" value="Sign In" />
+  </form>
 
-    <form action="/register" method="GET">
-      <input type="submit" value="Register" />
 
-  <% } else { %>
 
-    <form action="/logout" method="POST">
-      <span>user email: <%= email %></span>
-      <input id="email" type="submit" value="Sign Out" />
-    </form>
+<% } else { %>
 
-  <% } %>
+  <form style="margin-bottom: 30px;"action="/logout" method="POST">
+    <span>user email: <%= email %></span>
+    <input style="margin-left: 20px;" id="email" type="submit" value="Sign Out" />
+  </form>
+
+<% } %>
 
 
